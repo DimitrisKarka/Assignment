@@ -6,12 +6,7 @@ import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.web.RequestBody;
 import io.vertx.ext.web.Router;
-import io.vertx.mysqlclient.MySQLConnectOptions;
-import io.vertx.mysqlclient.MySQLPool;
-import io.vertx.sqlclient.PoolOptions;
-import io.vertx.sqlclient.SqlClient;
 
 public class controller extends AbstractVerticle {
 
@@ -26,16 +21,7 @@ public class controller extends AbstractVerticle {
     @Override
     public void start() {
         server = vertx.createHttpServer();//server initializaton
-        Router router = Router.router(vertx); // Router creation
-        MySQLConnectOptions connectOptions = new MySQLConnectOptions()//database conection
-        .setPort(3306)
-        .setHost("localhost")
-        .setDatabase("Tamanesco_lending_library")
-        .setUser("admin")
-        .setPassword("12345678910");
-        PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
-        SqlClient client = MySQLPool.client(vertx, connectOptions, poolOptions);
-
+        Router router = Router.router(vertx); // Router creatiom
         router.get("/home").handler(this :: homePage); //runs automatically in port 8080 or another default port if chosen
         //router paths for PeopleAPI
         router.put("/people/add").handler(this::addPeople);
@@ -62,8 +48,8 @@ public class controller extends AbstractVerticle {
     private void homePage(io.vertx.ext.web.RoutingContext routingContext){
         HttpServerResponse response = routingContext.response();
         response.end("This is the homepage of Tamasenco lending library\nPlease type one of the bellow http requests"+
-        "\n\nPeople API:/people/add?id=&name=&role=\nPeople API:/people/delete?id=\nPeople API:/people/alter?id=&name=&role"+
-        "\n\nBook API:/book/add?ISBN=&title=&author&count=\nBook API:/book/delete?ISBN=\nBook API:/book/alter?ISBN=&title=&Author"+
+        "\n\nPeople API:/people/add?id=&name=&role=\nPeople API:/people/delete?id=\nPeople API:/people/alter?id=&name=&role="+
+        "\n\nBook API:/book/add?ISBN=&title=&author&count=\nBook API:/book/delete?title=\nBook API:/book/alter?ISBN=&title=&Author=&count="+
         "\n\nLending API:/lendrequest?id=&nameofbook=\nLending API:/returnbook?id=&nameofbook="); 
     }
 
@@ -79,7 +65,7 @@ public class controller extends AbstractVerticle {
             String requestBody = body.toString(); 
             JsonObject json = new JsonObject(requestBody); // *** the data must be in JSON fashion to be parsed
             vertx.eventBus().send("model.addPeople", json);//event bus senting for the model
-            response.setStatusCode(200).end("people fields sent for addition to model successfully");//this should be in view probably
+            response.setStatusCode(200).end("people fields sent for addition to model successfully");//should this be in view probably? or not beacuse it is just a message and no organised data?
         });
     }
     private void deletePeople(io.vertx.ext.web.RoutingContext routingContext){

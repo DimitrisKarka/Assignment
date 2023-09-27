@@ -32,7 +32,8 @@ public class controller extends AbstractVerticle {
         router.delete("/book/delete").handler(this::deleteBook);
         router.post("/book/alter").handler(this::alterBook);
         //router paths for Lending API
-        router.get("/lendrequest").handler(this::lendRequest);
+        router.get("/showallbooks").handler(this::showAllBooks);
+        router.post("/lendrequest").handler(this::lendRequest);
         router.post("/returnbook").handler(this::returnBook);//it is not PUT beacuse if the book gets returned even if the count is currenlty 0, after the return its still an alteration not an addition
 
 
@@ -50,7 +51,7 @@ public class controller extends AbstractVerticle {
         response.end("This is the homepage of Tamasenco lending library\nPlease type one of the bellow http requests"+
         "\n\nPeople API:/people/add?id=&name=&role=\nPeople API:/people/delete?id=\nPeople API:/people/alter?id=&name=&role="+
         "\n\nBook API:/book/add?ISBN=&title=&author&count=\nBook API:/book/delete?title=\nBook API:/book/alter?ISBN=&title=&Author=&count="+
-        "\n\nLending API:/lendrequest?id=&nameofbook=\nLending API:/returnbook?id=&nameofbook="); 
+        "\n\nLending API:/lendrequest?id=&nameofbook=&lendingdate=\nLending API:/returnbook?id=&nameofbook="); 
     }
 
     /*needs some orgnazitaion. Either three separate file to obey the mvc principles
@@ -120,6 +121,9 @@ public class controller extends AbstractVerticle {
         });
     }
     //lending API
+    private void showAllBooks(io.vertx.ext.web.RoutingContext routingContext){
+      // will be doen using the view
+    }
     private void lendRequest(io.vertx.ext.web.RoutingContext routingContext){
         HttpServerRequest request = routingContext.request();
         HttpServerResponse response = routingContext.response();

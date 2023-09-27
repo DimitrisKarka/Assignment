@@ -1,7 +1,10 @@
 package com.tamasencolibrary;
 
+import java.util.LinkedList;
+
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
+import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -51,7 +54,7 @@ public class controller extends AbstractVerticle {
         response.end("This is the homepage of Tamasenco lending library\nPlease type one of the bellow http requests"+
         "\n\nPeople API:/people/add?id=&name=&role=\nPeople API:/people/delete?id=\nPeople API:/people/alter?id=&name=&role="+
         "\n\nBook API:/book/add?ISBN=&title=&author&count=\nBook API:/book/delete?title=\nBook API:/book/alter?ISBN=&title=&Author=&count="+
-        "\n\nLending API:/lendrequest?id=&nameofbook=&lendingdate=\nLending API:/returnbook?id=&nameofbook="); 
+        "\n\nLending API:/showallbooks?:/lendrequest?id=&nameofbook=&lendingdate=\nLending API:/returnbook?id=&nameofbook="); 
     }
 
     /*needs some orgnazitaion. Either three separate file to obey the mvc principles
@@ -122,7 +125,24 @@ public class controller extends AbstractVerticle {
     }
     //lending API
     private void showAllBooks(io.vertx.ext.web.RoutingContext routingContext){
-      // will be doen using the view
+        vertx.eventBus().request("model.showAllBooks", null, reply -> {//request sent to model
+            if (reply.succeeded()) {
+                Message<Object> message = reply.result();
+                LinkedList<String> rawData = (LinkedList<String>) message.body();//data coming back from model via the event bus in a linkedlist 
+                for(String data : rawData){
+                    System.out.println(data);
+                }
+                //i ll send data to view
+                //i ll tehn recieve tha data in an organazied way
+                //the controller will send them to the endpoint
+            } else {
+                // Handle the failure
+                Throwable exception = reply.cause();
+                exception.printStackTrace();
+            }
+            HttpServerResponse response = routingContext.response();
+            response.end("request for all books was succesfully sent");
+        });
     }
     private void lendRequest(io.vertx.ext.web.RoutingContext routingContext){
         HttpServerRequest request = routingContext.request();

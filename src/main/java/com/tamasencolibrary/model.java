@@ -1,7 +1,12 @@
 package com.tamasencolibrary;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mysqlclient.MySQLConnectOptions;
 import io.vertx.mysqlclient.MySQLPool;
@@ -164,7 +169,28 @@ public class model extends AbstractVerticle{
             });                    
         });
         vertx.eventBus().consumer("model.showAllBooks", message -> {
-
+            String sqlAllBooks = "SELECT * FROM books";
+            client.preparedQuery(sqlAllBooks).execute( queryResultAllBooks -> {
+                if (queryResultAllBooks.succeeded()){
+                    RowSet<Row> result = queryResultAllBooks.result();
+                    LinkedList <String> rawData = new LinkedList<>();
+                    for (Row row : result) {
+                        String isbn = row.getString("isbn");
+                        rawData.add(isbn);
+                        String title = row.getString("title");
+                        rawData.add(title);
+                        String author = row.getString("author");
+                        rawData.add(author);
+                        Integer count = row.getInteger("count");  
+                        rawData.add(Integer.toString(count));            
+                    }
+                    message.reply(rawData);
+                }
+                else {
+                    Throwable exception = queryResultAllBooks.cause();//query failure if it enters here
+                    exception.printStackTrace();
+                }
+            });
         });
         //the below code for model.lendRequest is WAYYY too much nested definitely not good code. Still works i think
         vertx.eventBus().consumer("model.lendRequest", message -> {

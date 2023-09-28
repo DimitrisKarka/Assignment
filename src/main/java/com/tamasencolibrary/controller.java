@@ -4,10 +4,11 @@ import java.util.LinkedList;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
-import io.vertx.core.eventbus.Message;
+//import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 
@@ -18,6 +19,7 @@ public class controller extends AbstractVerticle {
         Vertx vertx = Vertx.vertx();
         vertx.deployVerticle(new controller()); // main Verticle deployment(controller)
         vertx.deployVerticle(new model());//model verticle deployed
+        vertx.deployVerticle(new view());//view verticle deployed
 
     }
 
@@ -39,7 +41,6 @@ public class controller extends AbstractVerticle {
         router.post("/lendrequest").handler(this::lendRequest);
         router.post("/returnbook").handler(this::returnBook);//it is not PUT beacuse if the book gets returned even if the count is currenlty 0, after the return its still an alteration not an addition
 
-
         server.requestHandler(router).listen(8080, result -> {
             if (result.succeeded()) {
                 System.out.println("HTTP server started on port 8080");
@@ -47,14 +48,15 @@ public class controller extends AbstractVerticle {
                 System.err.println("HTTP server failed to start: " + result.cause());
             }
         });
+
     }
 
     private void homePage(io.vertx.ext.web.RoutingContext routingContext){
         HttpServerResponse response = routingContext.response();
-        response.end("This is the homepage of Tamasenco lending library\nPlease type one of the bellow http requests"+
-        "\n\nPeople API:/people/add?id=&name=&role=\nPeople API:/people/delete?id=\nPeople API:/people/alter?id=&name=&role="+
-        "\n\nBook API:/book/add?ISBN=&title=&author&count=\nBook API:/book/delete?title=\nBook API:/book/alter?ISBN=&title=&Author=&count="+
-        "\n\nLending API:/showallbooks?:/lendrequest?id=&nameofbook=&lendingdate=\nLending API:/returnbook?id=&nameofbook="); 
+        response.end("This is the homepage of Tamasenco lending library (GET) (http://localhost:8080/home)\nPlease type one of the bellow http requests"+
+        "\n\nPeople API (PUT):/people/add?id=&name=&role=\nPeople API (POST) :/people/delete?id=\nPeople API (POST) :/people/alter?id=&name=&role="+
+        "\n\nBook API (PUT) :/book/add?ISBN=&title=&author&count=\nBook API (POST) :/book/delete?title=\nBook API (POST) :/book/alter?ISBN=&title=&Author=&count="+
+        "\n\nLending API (GET) :/showallbooks\nLending API (POST) :/lendrequest?id=&nameofbook=&lendingdate=\nLending API (POST) :/returnbook?id=&nameofbook="); 
     }
 
     /*needs some orgnazitaion. Either three separate file to obey the mvc principles
@@ -68,7 +70,7 @@ public class controller extends AbstractVerticle {
         request.bodyHandler(body -> {
             String requestBody = body.toString(); 
             JsonObject json = new JsonObject(requestBody); // *** the data must be in JSON fashion to be parsed
-            vertx.eventBus().send("model.addPeople", json);//event bus senting for the model
+            vertx.eventBus().send("model.addPeople", json);
             response.setStatusCode(200).end("people fields sent for addition to model successfully");//should this be in view probably? or not beacuse it is just a message and no organised data?
         });
     }
@@ -125,33 +127,74 @@ public class controller extends AbstractVerticle {
     }
     //lending API
     private void showAllBooks(io.vertx.ext.web.RoutingContext routingContext){
-        vertx.eventBus().request("model.showAllBooks", null, reply -> {//request sent to model
-            if (reply.succeeded()) {
-                Message<Object> message = reply.result();
-                LinkedList<String> rawData = (LinkedList<String>) message.body();//data coming back from model via the event bus in a linkedlist 
-                for(String data : rawData){
-                    System.out.println(data);
-                }
-                //i ll send data to view
-                //i ll tehn recieve tha data in an organazied way
-                //the controller will send them to the endpoint
-            } else {
-                // Handle the failure
-                Throwable exception = reply.cause();
-                exception.printStackTrace();
-            }
-            HttpServerResponse response = routingContext.response();
-            response.end("request for all books was succesfully sent");
-        });
-    }
-    private void lendRequest(io.vertx.ext.web.RoutingContext routingContext){
         HttpServerRequest request = routingContext.request();
         HttpServerResponse response = routingContext.response();
         request.bodyHandler(body -> {
             String requestBody = body.toString(); 
             JsonObject json = new JsonObject(requestBody); 
-            vertx.eventBus().send("model.lendRequest", json);
-            response.setStatusCode(200).end("lend request sent to model successfully");//this should be in view probably
+            vertx.eventBus().send("model.showAllBooks", json);//event bus sents the request to model
+            vertx.eventBus().consumer("controller.showAllBooks", allBooks ->{//event bus returns the data (all books) in a linked list
+                LinkedList<String> allBooksRaw = (LinkedList<String>) allBooks.body();
+
+                /****** From here on and below i just could not understand why it was not working *******
+
+                vertx.eventBus().send("view.showAllBooks",  allBooksRaw);//event bus sends the books to view as raw data
+                try {
+                    vertx.eventBus().consumer(" controller.recieveBooks", allBooksJSON -> {//event bus recieves all books in JSON
+                        if (allBooksJSON != null) {
+                            JsonArray allBooksProccesed = new JsonArray();
+                            allBooksProccesed = (JsonArray) allBooksJSON;
+                            response.setStatusCode(200);
+                            response.putHeader("Content-Type", "application/json");
+                            response.end(allBooksProccesed.encode());//response sent to endpoint in JSON format
+                        } else {
+                            response.end("Message body is empty or invalid.");
+                        }   
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace(); // never entered here so it looks like the data from the event bus were arriving fine in the vertx.eventBus().consumer(" controller.recieveBooks", allBooksJSON line????
+                }    
+
+                //so i never sent the data in view as it should be done and just prossecced it below
+                //and send them direclty to the endpoint...
+
+                */
+                JsonArray allBooksFinal = new JsonArray();
+                while(!allBooksRaw.isEmpty()){
+                    JsonObject book = new JsonObject();
+                    book.put("isbn", allBooksRaw.poll());
+                    book.put("title", allBooksRaw.poll());
+                    book.put("author", allBooksRaw.poll());
+                    book.put("count", allBooksRaw.poll());
+                    allBooksFinal.add(book); 
+                }
+                response.setStatusCode(200);
+                response.putHeader("Content-Type", "application/json");
+                response.end(allBooksFinal.encode());
+            });
+        });
+    }
+    private void lendRequest(io.vertx.ext.web.RoutingContext routingContext){//here i used the view to retuern back the title in a proccessed title message just to understand the proccess of communicating via event busses and MVC better
+        HttpServerRequest request = routingContext.request();
+        HttpServerResponse response = routingContext.response();
+        request.bodyHandler(body -> {
+            String requestBody = body.toString(); 
+            JsonObject json = new JsonObject(requestBody); 
+            vertx.eventBus().send("model.lendRequest", json);//event bus sents the request to model
+            vertx.eventBus().consumer("controller.lendRequest", message ->{//event bus returns data(title) from model
+                    System.out.println("");//there are issues with buffering i guess that i dont understand...this println is needed here for the event buses to work
+                    vertx.eventBus().send("view.lendRequest", message.body());//event bus sends data(title) to view
+                    vertx.eventBus().consumer("controller.completeMessageForEnd", messageForEnd ->{//events bus returns altered data "endpoint message" from view
+                        response.setStatusCode(200);
+                        response.putHeader("Content-Type", "text/plain");
+                        Object messageBody = messageForEnd.body();
+                        if (messageBody != null) {
+                            response.end(messageBody.toString()); // controller sends data (endpoint message ) to endpoint
+                        } else {
+                            response.end("Message body is empty or invalid.");
+                        }
+                    });
+            });
         });
     }
     private void returnBook(io.vertx.ext.web.RoutingContext routingContext){

@@ -1,12 +1,11 @@
 package com.tamasencolibrary;
 
-import java.util.ArrayList;
+
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
+
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mysqlclient.MySQLConnectOptions;
 import io.vertx.mysqlclient.MySQLPool;
@@ -29,10 +28,10 @@ public class model extends AbstractVerticle{
         .setPassword("12345678910");
         PoolOptions poolOptions = new PoolOptions().setMaxSize(5);
         SqlClient client = MySQLPool.client(vertx, connectOptions, poolOptions);
-
+        
+        //people model communicating with the DB
         vertx.eventBus().consumer("model.addPeople", message -> {
             JsonObject data = (JsonObject) message.body();
-            // Process the data received from the event bus
             Integer id = data.getInteger("id");
             String name = data.getString("name");
             String role = data.getString("role");
@@ -99,6 +98,7 @@ public class model extends AbstractVerticle{
                 }
             });                                
         });
+        //book model communicating with the DB
         vertx.eventBus().consumer("model.addBook", message -> {
             JsonObject data = (JsonObject) message.body();
             String ISBN = data.getString("ISBN");
@@ -168,6 +168,7 @@ public class model extends AbstractVerticle{
                 }
             });                    
         });
+        //lending model communicating with the DB
         vertx.eventBus().consumer("model.showAllBooks", message -> {
             String sqlAllBooks = "SELECT * FROM books";
             client.preparedQuery(sqlAllBooks).execute( queryResultAllBooks -> {
@@ -184,7 +185,7 @@ public class model extends AbstractVerticle{
                         Integer count = row.getInteger("count");  
                         rawData.add(Integer.toString(count));            
                     }
-                    message.reply(rawData);
+                    vertx.eventBus().send("controller.showAllBooks", rawData);////event bus returns data back to controller
                 }
                 else {
                     Throwable exception = queryResultAllBooks.cause();//query failure if it enters here
@@ -232,6 +233,7 @@ public class model extends AbstractVerticle{
                                                 client.preparedQuery(sqlStatusInsertion).execute(Tuple.of(id , isbn,  title, lendingDate), queryResultStatusInsertion -> {
                                                     if (queryResultStatusInsertion.succeeded()) {
                                                         System.out.println("query statusInsertion success");
+                                                        vertx.eventBus().send("controller.lendRequest", title);//event bus returns data back to controller
                                                     } else {
                                                         Throwable exception = queryResultStatusInsertion.cause();//query failure if it enters here
                                                         exception.printStackTrace(); 

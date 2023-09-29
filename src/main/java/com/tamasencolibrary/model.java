@@ -91,8 +91,10 @@ public class model extends AbstractVerticle{
                             }
                         });
                     }
+                    else{
+                        System.out.println("ID does not exist");
+                    }
                 } else {
-                    System.out.println("ID does not exist");
                     Throwable exception = queryResultIdCheck.cause();
                     exception.printStackTrace(); 
                 }
@@ -224,7 +226,6 @@ public class model extends AbstractVerticle{
                                             String isbn = "0";// just needs initializtaion, 0 is a grabage value
                                             RowSet<Row> resultSet = queryResultIsbn.result();
                                             Iterator<Row> iterator = resultSet.iterator();
-                                            System.out.println("ISBN: " + isbn);
                                             if (iterator.hasNext()) {
                                                 Row row = iterator.next();
                                                 isbn = row.getString("isbn");

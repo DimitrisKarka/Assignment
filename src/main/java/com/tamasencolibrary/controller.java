@@ -7,6 +7,7 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.json.DecodeException;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
@@ -55,7 +56,7 @@ public class controller extends AbstractVerticle {
         response.end("This is the homepage of Tamasenco lending library (GET) (http://localhost:8080/home)\nPlease type one of the bellow http requests"+
         "\n\nPeople API (PUT):/people/add?id=&name=&role=\nPeople API (POST) :/people/delete?id=\nPeople API (POST) :/people/alter?id=&name=&role="+
         "\n\nBook API (PUT) :/book/add?ISBN=&title=&author&count=\nBook API (POST) :/book/delete?title=\nBook API (POST) :/book/alter?ISBN=&title=&Author=&count="+
-        "\n\nLending API (GET) :/showallbooks\nLending API (POST) :/lendrequest?id=&nameofbook=&lendingdate=\nLending API (POST) :/returnbook?id=&nameofbook="); 
+        "\n\nLending API (GET) :/showallbooks\nLending API (POST) :/lendrequest?id=&title=&lendingdate=\nLending API (POST) :/returnbook?id=&tile="); 
     }
 
     //people API
@@ -122,14 +123,10 @@ public class controller extends AbstractVerticle {
     }
     //lending API
     private void showAllBooks(io.vertx.ext.web.RoutingContext routingContext){
-        HttpServerRequest request = routingContext.request();
         HttpServerResponse response = routingContext.response();
-        request.bodyHandler(body -> {
-            String requestBody = body.toString(); 
-            JsonObject json = new JsonObject(requestBody); 
-            vertx.eventBus().send("model.showAllBooks", json);//event bus sents the request to model
-            vertx.eventBus().consumer("controller.showAllBooks", allBooks ->{//event bus returns the data (all books) in a linked list
-                LinkedList<String> allBooksRaw = (LinkedList<String>) allBooks.body();
+        vertx.eventBus().send("model.showAllBooks", new JsonObject());//event bus sents the request to model
+        vertx.eventBus().consumer("controller.showAllBooks", allBooks ->{//event bus returns the data (all books) in a linked list
+            LinkedList<String> allBooksRaw = (LinkedList<String>) allBooks.body();
 
                 /****** From here on and below i just could not understand why it was not working *******
 
@@ -154,19 +151,18 @@ public class controller extends AbstractVerticle {
                 //and send them direclty to the endpoint...
 
                 */
-                JsonArray allBooksFinal = new JsonArray();
-                while(!allBooksRaw.isEmpty()){
-                    JsonObject book = new JsonObject();
-                    book.put("isbn", allBooksRaw.poll());
-                    book.put("title", allBooksRaw.poll());
-                    book.put("author", allBooksRaw.poll());
-                    book.put("count", allBooksRaw.poll());
-                    allBooksFinal.add(book); 
-                }
-                response.setStatusCode(200);
-                response.putHeader("Content-Type", "application/json");
-                response.end(allBooksFinal.encode());
-            });
+            JsonArray allBooksFinal = new JsonArray();
+            while(!allBooksRaw.isEmpty()){
+                JsonObject book = new JsonObject();
+                book.put("isbn", allBooksRaw.poll());
+                book.put("title", allBooksRaw.poll());
+                book.put("author", allBooksRaw.poll());
+                book.put("count", allBooksRaw.poll());
+                allBooksFinal.add(book); 
+            }
+            response.setStatusCode(200);
+            response.putHeader("Content-Type", "application/json");
+            response.end(allBooksFinal.encode());
         });
     }
     private void lendRequest(io.vertx.ext.web.RoutingContext routingContext){

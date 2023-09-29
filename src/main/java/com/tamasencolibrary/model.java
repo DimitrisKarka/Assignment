@@ -48,7 +48,7 @@ public class model extends AbstractVerticle{
         vertx.eventBus().consumer("model.deletePeople", message -> {
             JsonObject data = (JsonObject) message.body();
             Integer id = data.getInteger("id");
-            String sqlIdCheck = "SELECT EXISTS(SELECT 1 FROM people WHERE id = ?) AS id_exists";//checking if th id exists
+            String sqlIdCheck = "SELECT EXISTS(SELECT 1 FROM people WHERE id = ?) AS id_exists";//checking if the id exists
             client.preparedQuery(sqlIdCheck).execute(Tuple.of(id), queryResultIdCheck -> {
                 if (queryResultIdCheck.succeeded()) {
                     Boolean idExists = queryResultIdCheck.result().iterator().next().getBoolean("id_exists");
@@ -66,7 +66,7 @@ public class model extends AbstractVerticle{
                     }
                 } else {
                     System.out.println("ID does not exist");
-                    Throwable exception = queryResultIdCheck.cause();//query failure if it enters here
+                    Throwable exception = queryResultIdCheck.cause();
                     exception.printStackTrace(); 
                 }
             });
@@ -76,7 +76,7 @@ public class model extends AbstractVerticle{
             Integer id = data.getInteger("id");
             String name = data.getString("name");
             String role = data.getString("role");
-            String sqlIdCheck = "SELECT EXISTS(SELECT 1 FROM people WHERE id = ?) AS id_exists";//checking if th id exists
+            String sqlIdCheck = "SELECT EXISTS(SELECT 1 FROM people WHERE id = ?) AS id_exists";
             client.preparedQuery(sqlIdCheck).execute(Tuple.of(id), queryResultIdCheck -> {
                 if (queryResultIdCheck.succeeded()) {
                     Boolean idExists = queryResultIdCheck.result().iterator().next().getBoolean("id_exists");
@@ -86,14 +86,14 @@ public class model extends AbstractVerticle{
                             if (queryResultAlter.succeeded()) {
                                 System.out.println("query success");
                             }else {
-                                Throwable exception = queryResultAlter.cause();//query failure if it enters here
+                                Throwable exception = queryResultAlter.cause();
                                 exception.printStackTrace(); 
                             }
                         });
                     }
                 } else {
                     System.out.println("ID does not exist");
-                    Throwable exception = queryResultIdCheck.cause();//query failure if it enters here
+                    Throwable exception = queryResultIdCheck.cause();
                     exception.printStackTrace(); 
                 }
             });                                
@@ -128,14 +128,14 @@ public class model extends AbstractVerticle{
                             if (queryResultDelete.succeeded()) {
                                 System.out.println("query success");
                             } else {
-                                Throwable exception = queryResultDelete.cause();//query failure if it enters here
+                                Throwable exception = queryResultDelete.cause();
                                 exception.printStackTrace(); 
                             }
                         });
                     }
                 } else {
                     System.out.println("title does not exist");
-                    Throwable exception = queryResultTitleCheck.cause();//query failure if it enters here
+                    Throwable exception = queryResultTitleCheck.cause();
                     exception.printStackTrace(); 
                 }
             });                                
@@ -156,14 +156,14 @@ public class model extends AbstractVerticle{
                             if (queryResultUpdate.succeeded()) {
                                 System.out.println("query success");
                             } else {
-                                Throwable exception = queryResultUpdate.cause();//query failure if it enters here
+                                Throwable exception = queryResultUpdate.cause();
                                 exception.printStackTrace(); 
                             }
                         });
                     }
                 } else {
                     System.out.println("ISBN does not exist");
-                    Throwable exception = queryResultIsbnCheck.cause();//query failure if it enters here
+                    Throwable exception = queryResultIsbnCheck.cause();
                     exception.printStackTrace(); 
                 }
             });                    
@@ -188,7 +188,7 @@ public class model extends AbstractVerticle{
                     vertx.eventBus().send("controller.showAllBooks", rawData);////event bus returns data back to controller
                 }
                 else {
-                    Throwable exception = queryResultAllBooks.cause();//query failure if it enters here
+                    Throwable exception = queryResultAllBooks.cause();
                     exception.printStackTrace();
                 }
             });
@@ -196,8 +196,8 @@ public class model extends AbstractVerticle{
         //the below code for model.lendRequest is WAYYY too much nested definitely not good code. Still works i think
         vertx.eventBus().consumer("model.lendRequest", message -> {
             JsonObject data = (JsonObject) message.body();
-            Integer id = data.getInteger("id");//unhandled exceptions for non existing id due to time pressuring
-            String sqlIdCheck = "SELECT EXISTS(SELECT 1 FROM people WHERE id = ?) AS id_exists";//checking if th id exists
+            Integer id = data.getInteger("id");
+            String sqlIdCheck = "SELECT EXISTS(SELECT 1 FROM people WHERE id = ?) AS id_exists";
             client.preparedQuery(sqlIdCheck).execute(Tuple.of(id), queryResultIdCheck -> {
                 if (queryResultIdCheck.succeeded()) {
                     Boolean idExists = queryResultIdCheck.result().iterator().next().getBoolean("id_exists");
@@ -214,7 +214,7 @@ public class model extends AbstractVerticle{
                                         if (queryResultCountUpdate.succeeded()) {
                                             System.out.println("query count update(minus 1) success");
                                         } else {
-                                            Throwable exception = queryResultCountUpdate.cause();//query failure if it enters here
+                                            Throwable exception = queryResultCountUpdate.cause();
                                             exception.printStackTrace(); 
                                         }
                                     });
@@ -235,7 +235,7 @@ public class model extends AbstractVerticle{
                                                         System.out.println("query statusInsertion success");
                                                         vertx.eventBus().send("controller.lendRequest", title);//event bus returns data back to controller
                                                     } else {
-                                                        Throwable exception = queryResultStatusInsertion.cause();//query failure if it enters here
+                                                        Throwable exception = queryResultStatusInsertion.cause();
                                                         exception.printStackTrace(); 
                                                     }
                                                 });
@@ -244,7 +244,7 @@ public class model extends AbstractVerticle{
                                                 System.out.println("ISBN doesnt exist");
                                             }
                                         } else{
-                                            Throwable exception = queryResultIsbn.cause();//query failure if it enters here
+                                            Throwable exception = queryResultIsbn.cause();
                                             exception.printStackTrace(); 
                                         }
                                     });
@@ -252,7 +252,7 @@ public class model extends AbstractVerticle{
                                     System.out.println("Count is zero, request must be denied.");
                                 }
                             } else {
-                                Throwable exception = queryResultCount.cause();//query failure if it enters here
+                                Throwable exception = queryResultCount.cause();
                                 exception.printStackTrace(); 
                             }
                         });
@@ -260,7 +260,7 @@ public class model extends AbstractVerticle{
                         System.out.println("ID does not exist");
                     }
                 } else {
-                    Throwable exception = queryResultIdCheck.cause();//query failure if it enters here
+                    Throwable exception = queryResultIdCheck.cause();
                     exception.printStackTrace(); 
                 }
             }); 
@@ -269,12 +269,12 @@ public class model extends AbstractVerticle{
             JsonObject data = (JsonObject) message.body();
             Integer id = data.getInteger("id");
             String title = data.getString("title");
-            String sqlIdCheck = "SELECT EXISTS(SELECT 1 FROM people WHERE id = ?) AS id_exists";//checking if th id exists
+            String sqlIdCheck = "SELECT EXISTS(SELECT 1 FROM people WHERE id = ?) AS id_exists";
             client.preparedQuery(sqlIdCheck).execute(Tuple.of(id), queryResultIdCheck -> {
                 if (queryResultIdCheck.succeeded()) {
                     Boolean idExists = queryResultIdCheck.result().iterator().next().getBoolean("id_exists");
                     if (idExists) {
-                        String sqlTitleCheck = "SELECT EXISTS(SELECT 1 FROM books WHERE title = ?) AS title_exists";//checking if the title exists
+                        String sqlTitleCheck = "SELECT EXISTS(SELECT 1 FROM books WHERE title = ?) AS title_exists";
                         client.preparedQuery(sqlTitleCheck).execute(Tuple.of(title), queryResultTitleCheck -> {
                             if (queryResultTitleCheck.succeeded()) {
                                 Boolean titleExists = queryResultTitleCheck.result().iterator().next().getBoolean("title_exists");
@@ -285,7 +285,7 @@ public class model extends AbstractVerticle{
                                             System.out.println("succesfull return of book " + title);
                                         }
                                         else{
-                                            Throwable exception = queryResultReturn.cause();//query failure if it enters here
+                                            Throwable exception = queryResultReturn.cause();
                                             exception.printStackTrace(); 
                                         }
                                     });
@@ -293,7 +293,7 @@ public class model extends AbstractVerticle{
                                     System.out.println("title does not exist");
                                 }
                             } else {
-                                Throwable exception = queryResultTitleCheck.cause();//query failure if it enters here
+                                Throwable exception = queryResultTitleCheck.cause();
                                 exception.printStackTrace(); 
                             }
                         });                 
@@ -301,7 +301,7 @@ public class model extends AbstractVerticle{
                         System.out.println("ID does not exist");
                     }
                 } else {
-                    Throwable exception = queryResultIdCheck.cause();//query failure if it enters here
+                    Throwable exception = queryResultIdCheck.cause();
                     exception.printStackTrace(); 
                 }
             });

@@ -4,7 +4,6 @@ import java.util.LinkedList;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
-//import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
@@ -39,7 +38,7 @@ public class controller extends AbstractVerticle {
         //router paths for Lending API
         router.get("/showallbooks").handler(this::showAllBooks);
         router.post("/lendrequest").handler(this::lendRequest);
-        router.post("/returnbook").handler(this::returnBook);//it is not PUT beacuse if the book gets returned even if the count is currenlty 0, after the return its still an alteration not an addition
+        router.post("/returnbook").handler(this::returnBook);
 
         server.requestHandler(router).listen(8080, result -> {
             if (result.succeeded()) {
@@ -58,10 +57,6 @@ public class controller extends AbstractVerticle {
         "\n\nBook API (PUT) :/book/add?ISBN=&title=&author&count=\nBook API (POST) :/book/delete?title=\nBook API (POST) :/book/alter?ISBN=&title=&Author=&count="+
         "\n\nLending API (GET) :/showallbooks\nLending API (POST) :/lendrequest?id=&nameofbook=&lendingdate=\nLending API (POST) :/returnbook?id=&nameofbook="); 
     }
-
-    /*needs some orgnazitaion. Either three separate file to obey the mvc principles
-     * or one file here but again organize it so that the mvc principles are followed
-    */
 
     //people API
     private void addPeople(io.vertx.ext.web.RoutingContext routingContext) {
@@ -174,7 +169,7 @@ public class controller extends AbstractVerticle {
             });
         });
     }
-    private void lendRequest(io.vertx.ext.web.RoutingContext routingContext){//here i used the view to retuern back the title in a proccessed title message just to understand the proccess of communicating via event busses and MVC better
+    private void lendRequest(io.vertx.ext.web.RoutingContext routingContext){
         HttpServerRequest request = routingContext.request();
         HttpServerResponse response = routingContext.response();
         request.bodyHandler(body -> {
@@ -204,7 +199,7 @@ public class controller extends AbstractVerticle {
             String requestBody = body.toString(); 
             JsonObject json = new JsonObject(requestBody); 
             vertx.eventBus().send("model.returnBook", json);
-            response.setStatusCode(200).end("return of book sent to model successfully");//this should be in view probably
+            response.setStatusCode(200).end("return of book sent to model successfully");
         });
     }
 

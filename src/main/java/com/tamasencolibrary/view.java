@@ -1,9 +1,5 @@
 package com.tamasencolibrary;
-
-//import java.util.LinkedList;
 import io.vertx.core.AbstractVerticle;
-//import io.vertx.core.json.JsonArray;
-//import io.vertx.core.json.JsonObject;
 
 public class view extends AbstractVerticle{
     

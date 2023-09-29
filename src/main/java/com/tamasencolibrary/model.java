@@ -41,6 +41,7 @@ public class model extends AbstractVerticle{
                     System.out.println("query success");
                 } else {
                     Throwable exception = queryResult.cause();
+                    
                     exception.printStackTrace(); 
                 }
             });
@@ -56,12 +57,11 @@ public class model extends AbstractVerticle{
                         String sqlDelete = "DELETE FROM people WHERE id = (?)";
                         client.preparedQuery(sqlDelete).execute(Tuple.of(id), queryResultDelete -> {
                             if (queryResultDelete.succeeded()) {
-                                System.out.println("query success");
+                            System.out.println("query success");
                             } else {
-                                Throwable exception = queryResultDelete.cause();//query failure if it enters here
+                                Throwable exception = queryResultDelete.cause();
                                 exception.printStackTrace(); 
                             }
-                        
                         });
                     }
                 } else {

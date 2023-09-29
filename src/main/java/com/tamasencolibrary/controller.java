@@ -173,7 +173,6 @@ public class controller extends AbstractVerticle {
             JsonObject json = new JsonObject(requestBody); 
             vertx.eventBus().send("model.lendRequest", json);//event bus sents the request to model
             vertx.eventBus().consumer("controller.lendRequest", message ->{//event bus returns data(title) from model
-                    System.out.println("");//there are issues with buffering i guess that i dont understand...this println is needed here for the event buses to work
                     vertx.eventBus().send("view.lendRequest", message.body());//event bus sends data(title) to view
                     vertx.eventBus().consumer("controller.completeMessageForEnd", messageForEnd ->{//events bus returns altered data "endpoint message" from view
                         response.setStatusCode(200);
